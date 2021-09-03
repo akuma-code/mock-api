@@ -1,0 +1,20 @@
+{
+  "name": "mock-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.17.1",
+    "fs-extra": "^10.0.0",
+    "lowdb": "^2.1.0",
+    "nodemon": "^2.0.12",
+    "open-cli": "^7.0.0",
+    "very-simple-fetch": "^0.1.9"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "open-cli http://localhost:5000 && nodemon index.js",
+    "start": "node index.js"
+  }
+}
