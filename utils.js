@@ -24,9 +24,8 @@ export async function createFile(fileData, filePath, fileExt = 'json') {
   }
 }
 
-export const readFile = async (filePath, fileExt = 'json') => {
+export async function readFile(filePath, fileExt = 'json') {
   const fileName = `${PROJECT_PATH}/${filePath}.${fileExt}`
-  console.log(fileName)
   let fh
   try {
     fh = await fs.open(fileName)
@@ -108,6 +107,8 @@ export const uploadFile = multer({
 })
 
 export const queryMap = {
+  offset: (items, count) => items.slice(count),
+  limit: (items, count) => items.slice(0, count),
   sort(items, field = 'id', order = 'asc') {
     return items.sort((a, b) => {
       if (typeof a[field] === 'string') {
@@ -120,9 +121,7 @@ export const queryMap = {
         ? a[field] - b[field]
         : b[field] - a[field]
     })
-  },
-  offset: (items, count) => items.slice(count),
-  limit: (items, count) => items.slice(0, count)
+  }
 }
 
 export function areEqual(a, b) {
