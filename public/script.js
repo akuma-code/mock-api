@@ -1,13 +1,8 @@
 import simpleFetch from '/node_modules/very-simple-fetch/index.js'
-import todos from './todos.js'
+import todos from './data/todos.js'
 import { isJson } from './utils.js'
 
 simpleFetch.baseUrl = 'http://localhost:5000/project'
-
-function initProject(name, data) {
-  project_name.value = name
-  project_data.value = JSON.stringify(data, null, 2)
-}
 
 async function getProjects() {
   const { data, error } = await simpleFetch.get({ customCache: false })
@@ -20,7 +15,11 @@ async function getProjects() {
 
   if (data.length === 0) {
     return (project_list.innerHTML = /*html*/ `
-      <li class="list-group-item d-flex align-items-center">You have no projects. Why don't create one?</li>
+      <li
+        class="list-group-item d-flex align-items-center"
+      >
+        You have no projects. Why don't create one?
+      </li>
     `)
   }
 
@@ -30,34 +29,42 @@ async function getProjects() {
 
   for (const p of projects) {
     project_list.innerHTML += /*html*/ `
-      <li class="list-group-item d-flex align-items-center" data-name="${p}">
-        <span class="flex-grow-1">${p}</span>
-        <button class="btn btn-outline-success" data-action="edit"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-outline-danger" data-action="remove"><i class="bi bi-trash"></i></button>
+      <li
+        class="list-group-item d-flex align-items-center"
+        data-name="${p}"
+      >
+        <span class="flex-grow-1">
+          ${p}
+        </span>
+        <button
+          class="btn btn-outline-success"
+          data-action="edit"
+        >
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button
+          class="btn btn-outline-danger"
+          data-action="remove"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
       </li>
     `
   }
 }
+
+function initProject(name, data) {
+  project_name.value = name
+  project_data_paste.value = JSON.stringify(data, null, 2)
+}
+
 getProjects()
 initProject('todos', todos)
 initHandlers()
 
-async function removeProject(name) {
-  const response = await simpleFetch.remove(`?project_name=${name}`)
-  await handleResponse(response)
-}
-
-async function editProject(name) {
-  const { data, error } = await simpleFetch.get(`?project_name=${name}`)
-  if (error) {
-    return console.error(error)
-  }
-  initProject(name, data)
-}
-
 function initHandlers() {
   project_list.onclick = ({ target }) => {
-    const action = target.closest('button')?.dataset?.action
+    const action = target.closest('button')?.dataset.action
     if (!action) return
     const name = target.closest('li').dataset.name
     switch (action) {
@@ -71,16 +78,42 @@ function initHandlers() {
   project_create.onsubmit = async (e) => {
     e.preventDefault()
 
-    const data = project_data.value.trim()
+    let data, response
 
-    const body = {
-      project_name: project_name.value.trim(),
-      project_data: isJson(data) ? JSON.parse(data) : data
+    if (project_data_upload.value) {
+      data = new FormData(project_create)
+      data.delete('project_data_paste')
+      response = await simpleFetch.post('/upload', data, {
+        headers: {}
+      })
+    } else {
+      data = project_data_paste.value.trim()
+
+      const body = {
+        project_name: project_name.value.trim(),
+        project_data: isJson(data) ? JSON.parse(data) : data
+      }
+
+      response = await simpleFetch.post('/create', body)
     }
 
-    const response = await simpleFetch.post(body)
+    project_name.value = ''
+
     await handleResponse(response)
   }
+}
+
+async function removeProject(name) {
+  const response = await simpleFetch.remove(`?project_name=${name}`)
+  await handleResponse(response)
+}
+
+async function editProject(name) {
+  const { data, error } = await simpleFetch.get(`?project_name=${name}`)
+  if (error) {
+    return console.error(error)
+  }
+  initProject(name, data)
 }
 
 async function handleResponse(response) {

@@ -3,5 +3,5 @@
 }
 
 .container {
-  min-width: 768px !important;
+  max-width: 768px !important;
 }

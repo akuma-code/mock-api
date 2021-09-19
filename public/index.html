@@ -31,17 +31,17 @@
       </header>
       <main>
         <div>
-          <h3 class="mt-4 mb-2">My projects</h3>
+          <h3 class="mt-4 mb-3">My projects</h3>
           <ul class="list-group" id="project_list"></ul>
         </div>
         <div>
-          <h3 class="mt-4 mb-2">New project</h3>
+          <h3 class="mt-4 mb-3">New project</h3>
           <form id="project_create">
             <div class="mb-2">
               <label for="project_name" class="form-label">Project name</label>
               <input
                 type="text"
-                class="form-control"
+                class="form-control mt-2"
                 name="project_name"
                 id="project_name"
                 aria-describedby="project_name"
@@ -49,16 +49,28 @@
               />
             </div>
 
-            <div class="mb-2">
-              <label for="project_data" class="form-label">Project data</label>
+            <details class="mt-4">
+              <summary>Paste or enter project data</summary>
               <textarea
-                class="form-control"
+                class="form-control mt-2"
                 name="project_data"
-                id="project_data"
+                id="project_data_paste"
                 rows="10"
               ></textarea>
+            </details>
+            <div class="mt-4">
+              <label for="project_data_upload" class="form-label"
+                >Upload project data</label
+              >
+              <input
+                class="form-control mt-2"
+                type="file"
+                accept=".json"
+                name="project_data"
+                id="project_data_upload"
+              />
             </div>
-            <button class="btn btn-success mb-2">Create project</button>
+            <button class="btn btn-success mt-4 mb-2">Create project</button>
           </form>
         </div>
       </main>
