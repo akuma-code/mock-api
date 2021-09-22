@@ -4,7 +4,7 @@ import { isJson } from './utils.js'
 
 simpleFetch.baseUrl = 'http://localhost:5000/project'
 
-async function getProjects() {
+async function fetchProjects() {
   const { data, error } = await simpleFetch.get({ customCache: false })
 
   if (error) {
@@ -58,7 +58,7 @@ function initProject(name, data) {
   project_data_paste.value = JSON.stringify(data, null, 2)
 }
 
-getProjects()
+fetchProjects()
 initProject('todos', todos)
 initHandlers()
 
@@ -122,5 +122,5 @@ async function handleResponse(response) {
     return console.error(error)
   }
   console.log(data.message)
-  await getProjects()
+  await fetchProjects()
 }

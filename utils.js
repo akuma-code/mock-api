@@ -4,18 +4,19 @@ import { promises as fs } from 'fs'
 import multer from 'multer'
 
 export const __dirname = dirname(fileURLToPath(import.meta.url))
-const PROJECT_PATH = `${__dirname}/projects`
+const ROOT_PATH = `${__dirname}/projects`
 
 const notExist = (e) => e.code === 'ENOENT'
 const truncPath = (p) => p.split('/').slice(0, -1).join('/')
 
 export async function createFile(fileData, filePath, fileExt = 'json') {
-  const fileName = `${PROJECT_PATH}/${filePath}.${fileExt}`
+  const fileName = `${ROOT_PATH}/${filePath}.${fileExt}`
+
   try {
     await fs.writeFile(fileName, JSON.stringify(fileData, null, 2))
   } catch (e) {
     if (notExist(e)) {
-      await fs.mkdir(truncPath(`${PROJECT_PATH}/${filePath}`), {
+      await fs.mkdir(truncPath(`${ROOT_PATH}/${filePath}`), {
         recursive: true
       })
       return createFile(fileData, filePath, fileExt)
@@ -25,26 +26,27 @@ export async function createFile(fileData, filePath, fileExt = 'json') {
 }
 
 export async function readFile(filePath, fileExt = 'json') {
-  const fileName = `${PROJECT_PATH}/${filePath}.${fileExt}`
-  let fh
+  const fileName = `${ROOT_PATH}/${filePath}.${fileExt}`
+  let fileHandler = null
   try {
-    fh = await fs.open(fileName)
-    return await fh.readFile('utf-8')
+    fileHandler = await fs.open(fileName)
+    return await fileHandler.readFile('utf-8')
   } catch (e) {
     if (notExist(e)) {
       return console.error('not found')
     }
     console.error(e)
   } finally {
-    fh?.close()
+    fileHandler?.close()
   }
 }
 
 export async function removeFile(filePath, fileExt = 'json') {
-  const fileName = `${PROJECT_PATH}/${filePath}.${fileExt}`
+  const fileName = `${ROOT_PATH}/${filePath}.${fileExt}`
+
   try {
     await fs.unlink(fileName)
-    await removeDir(truncPath(`${PROJECT_PATH}/${filePath}`))
+    await removeDir(truncPath(`${ROOT_PATH}/${filePath}`))
   } catch (e) {
     if (notExist(e)) {
       return console.error('not found')
@@ -53,9 +55,11 @@ export async function removeFile(filePath, fileExt = 'json') {
   }
 }
 
-async function removeDir(dirPath, rootPath = PROJECT_PATH) {
+async function removeDir(dirPath, rootPath = ROOT_PATH) {
   if (dirPath === rootPath) return
+
   const isEmpty = (await fs.readdir(dirPath)).length < 1
+
   if (isEmpty) {
     await fs.rmdir(dirPath)
     const _dirPath = truncPath(dirPath)
@@ -63,23 +67,26 @@ async function removeDir(dirPath, rootPath = PROJECT_PATH) {
   }
 }
 
-export async function getFileNames(path = PROJECT_PATH) {
+export async function getFileNames(path = ROOT_PATH) {
   let fileNames = []
 
   try {
-    const list = await fs.readdir(path)
+    const files = await fs.readdir(path)
 
-    if (list.length < 1) return fileNames
+    if (files.length < 1) return fileNames
 
-    for (let file of list) {
+    for (let file of files) {
       file = `${path}/${file}`
-      const dir = (await fs.stat(file)).isDirectory()
-      if (dir) {
+
+      const isDir = (await fs.stat(file)).isDirectory()
+
+      if (isDir) {
         fileNames = fileNames.concat(await getFileNames(file))
       } else {
         fileNames.push(file)
       }
     }
+
     return fileNames
   } catch (e) {
     if (notExist(e)) {
@@ -92,7 +99,7 @@ export async function getFileNames(path = PROJECT_PATH) {
 export const uploadFile = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      const dirPath = `${PROJECT_PATH}/${req.body.project_name.replace(
+      const dirPath = `${ROOT_PATH}/${req.body.project_name.replace(
         file.originalname.replace('.json', ''),
         ''
       )}`
@@ -113,10 +120,12 @@ export const queryMap = {
     return items.sort((a, b) => {
       if (typeof a[field] === 'string') {
         const collator = new Intl.Collator()
+
         return order.toLowerCase() === 'asc'
           ? collator.compare(a[field], b[field])
           : collator.compare(b[field], a[field])
       }
+
       return order.toLowerCase() === 'asc'
         ? a[field] - b[field]
         : b[field] - a[field]
@@ -126,11 +135,17 @@ export const queryMap = {
 
 export function areEqual(a, b) {
   if (a === b) return true
+
   if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
+
   if (!a || !b || (typeof a !== 'object' && typeof b !== 'object'))
     return a === b
+
   if (a.prototype !== b.prototype) return false
+
   const keys = Object.keys(a)
+
   if (keys.length !== Object.keys(b).length) return false
+
   return keys.every((k) => areEqual(a[k], b[k]))
 }

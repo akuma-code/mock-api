@@ -10,11 +10,13 @@ import {
 export default Router()
   .get('/', async (req, res, next) => {
     const { project_name } = req.query
-    console.log(project_name)
+
     if (!project_name) return next()
+
     try {
-      const file = await readFile(project_name)
-      res.status(200).json(file)
+      const project = await readFile(project_name)
+
+      res.status(200).json(project)
     } catch (e) {
       next(e)
     }
@@ -22,6 +24,7 @@ export default Router()
   .get('/', async (req, res, next) => {
     try {
       const projects = (await getFileNames()) || []
+
       res.status(200).json(projects)
     } catch (e) {
       next(e)
@@ -38,7 +41,7 @@ export default Router()
       next(e)
     }
   })
-  .post('/upload', uploadFile.any(), (req, res, next) => {
+  .post('/upload', uploadFile.single('project'), (req, res, next) => {
     res.status(201).json({
       message: `Project "${req.body.project_name}" uploaded`
     })
@@ -48,6 +51,7 @@ export default Router()
 
     try {
       await removeFile(project_name)
+
       res.status(201).json({ message: `Project "${project_name}" removed` })
     } catch (e) {
       next(e)
