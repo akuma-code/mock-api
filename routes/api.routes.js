@@ -78,6 +78,7 @@ export default Router()
     const [url, slug] = Object.values(req.params)
     try {
       const project = await readFile(url)
+      if (!project) return res.sendStatus(404)
       const newProject = project.map((p) => {
         if (Object.values(p).find((v) => v === slug)) {
           return { ...p, ...req.body }
@@ -94,6 +95,7 @@ export default Router()
     const [url, slug] = Object.values(req.params)
     try {
       const project = await readFile(url)
+      if (!project) return res.sendStatus(404)
       const newProject = project.filter(
         (p) => !Object.values(p).find((v) => v === slug)
       )

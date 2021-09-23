@@ -13,7 +13,7 @@ async function fetchProjects() {
 
   project_list.innerHTML = ''
 
-  if (data.length === 0) {
+  if (data.length < 1) {
     return (project_list.innerHTML = /*html*/ `
       <li
         class="list-group-item d-flex align-items-center"
@@ -55,23 +55,21 @@ async function fetchProjects() {
 
 function initProject(name, data) {
   project_name.value = name
-  project_data_paste.value = JSON.stringify(data, null, 2)
+  project_data_paste.value = isJson(data) ? data : JSON.stringify(data, null, 2)
 }
-
-fetchProjects()
-initProject('todos', todos)
-initHandlers()
 
 function initHandlers() {
   project_list.onclick = ({ target }) => {
-    const action = target.closest('button')?.dataset.action
-    if (!action) return
-    const name = target.closest('li').dataset.name
-    switch (action) {
-      case 'remove':
-        return removeProject(name)
-      case 'edit':
-        return editProject(name)
+    const button = target.matches('button') ? target : target.closest('button')
+    const { action } = button.dataset
+    const { name } = target.closest('li').dataset
+    if (button && action && name) {
+      switch (action) {
+        case 'remove':
+          return removeProject(name)
+        case 'edit':
+          return editProject(name)
+      }
     }
   }
 
@@ -124,3 +122,7 @@ async function handleResponse(response) {
   console.log(data.message)
   await fetchProjects()
 }
+
+fetchProjects()
+initProject('todos', todos)
+initHandlers()
