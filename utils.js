@@ -120,10 +120,9 @@ export const queryMap = {
   offset: (items, count) => items.slice(count),
   limit: (items, count) => items.slice(0, count),
   sort(items, field = 'id', order = 'asc') {
+    const collator = new Intl.Collator()
     return items.sort((a, b) => {
       if (typeof a[field] === 'string') {
-        const collator = new Intl.Collator()
-
         return order.toLowerCase() === 'asc'
           ? collator.compare(a[field], b[field])
           : collator.compare(b[field], a[field])
