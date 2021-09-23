@@ -27,9 +27,11 @@ export async function createFile(fileData, filePath, fileExt = 'json') {
 
 export async function readFile(filePath, fileExt = 'json') {
   const fileName = `${ROOT_PATH}/${filePath}.${fileExt}`
+
   let fileHandler = null
   try {
     fileHandler = await fs.open(fileName)
+
     return await fileHandler.readFile('utf-8')
   } catch (e) {
     if (notExist(e)) {
@@ -46,6 +48,7 @@ export async function removeFile(filePath, fileExt = 'json') {
 
   try {
     await fs.unlink(fileName)
+
     await removeDir(truncPath(`${ROOT_PATH}/${filePath}`))
   } catch (e) {
     if (notExist(e)) {
@@ -62,8 +65,8 @@ async function removeDir(dirPath, rootPath = ROOT_PATH) {
 
   if (isEmpty) {
     await fs.rmdir(dirPath)
-    const _dirPath = truncPath(dirPath)
-    removeDir(_dirPath)
+
+    removeDir(truncPath(dirPath))
   }
 }
 
