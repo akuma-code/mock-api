@@ -55,20 +55,25 @@ async function fetchProjects() {
 
 function initProject(name, data) {
   project_name.value = name
-  project_data_paste.value = isJson(data) ? data : JSON.stringify(data, null, 2)
+  project_data_paste.value = JSON.stringify(data, null, 2)
 }
 
 function initHandlers() {
   project_list.onclick = ({ target }) => {
     const button = target.matches('button') ? target : target.closest('button')
+
     const { action } = button.dataset
+
     const { name } = target.closest('li').dataset
+
     if (button && action && name) {
       switch (action) {
-        case 'remove':
-          return removeProject(name)
         case 'edit':
           return editProject(name)
+        case 'remove':
+          return removeProject(name)
+        default:
+          return
       }
     }
   }
@@ -76,11 +81,15 @@ function initHandlers() {
   project_create.onsubmit = async (e) => {
     e.preventDefault()
 
+    if (!project_name.value.trim()) return
+
     let data, response
 
     if (project_data_upload.value) {
       data = new FormData(project_create)
+
       data.delete('project_data_paste')
+
       response = await simpleFetch.post('/upload', data, {
         headers: {}
       })
@@ -103,23 +112,29 @@ function initHandlers() {
 
 async function removeProject(name) {
   const response = await simpleFetch.remove(`?project_name=${name}`)
+
   await handleResponse(response)
 }
 
 async function editProject(name) {
   const { data, error } = await simpleFetch.get(`?project_name=${name}`)
+
   if (error) {
     return console.error(error)
   }
+
   initProject(name, data)
 }
 
 async function handleResponse(response) {
   const { data, error } = response
+
   if (error) {
     return console.error(error)
   }
+
   console.log(data.message)
+
   await fetchProjects()
 }
 

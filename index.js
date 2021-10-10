@@ -17,8 +17,8 @@ app.use('/project', projectRoutes)
 app.use('/api', apiRoutes)
 
 app.use((err, req, res, next) => {
-  console.error(err)
-  res.sendStatus(500)
+  console.error(err.message || err)
+  res.sendStatus(err.status || 500)
 })
 
 const PORT = process.env.PORT || 5000

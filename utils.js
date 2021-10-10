@@ -14,14 +14,14 @@ export async function createFile(fileData, filePath, fileExt = 'json') {
 
   try {
     await fs.writeFile(fileName, JSON.stringify(fileData, null, 2))
-  } catch (e) {
-    if (notExist(e)) {
+  } catch (err) {
+    if (notExist(err)) {
       await fs.mkdir(truncPath(`${ROOT_PATH}/${filePath}`), {
         recursive: true
       })
       return createFile(fileData, filePath, fileExt)
     }
-    console.error(e)
+    throw err
   }
 }
 
@@ -32,12 +32,14 @@ export async function readFile(filePath, fileExt = 'json') {
   try {
     fileHandler = await fs.open(fileName)
 
-    return await fileHandler.readFile('utf-8')
-  } catch (e) {
-    if (notExist(e)) {
-      return console.error('not found')
+    const fileContent = await fileHandler.readFile('utf-8')
+
+    return JSON.parse(fileContent)
+  } catch (err) {
+    if (notExist(err)) {
+      throw { status: 404, message: 'Not found' }
     }
-    console.error(e)
+    throw err
   } finally {
     fileHandler?.close()
   }
@@ -50,11 +52,11 @@ export async function removeFile(filePath, fileExt = 'json') {
     await fs.unlink(fileName)
 
     await removeDir(truncPath(`${ROOT_PATH}/${filePath}`))
-  } catch (e) {
-    if (notExist(e)) {
-      return console.error('not found')
+  } catch (err) {
+    if (notExist(err)) {
+      throw { status: 404, message: 'Not found' }
     }
-    console.error(e)
+    throw err
   }
 }
 
@@ -91,11 +93,11 @@ export async function getFileNames(path = ROOT_PATH) {
     }
 
     return fileNames
-  } catch (e) {
-    if (notExist(e)) {
-      return console.error('not found')
+  } catch (err) {
+    if (notExist(err)) {
+      throw { status: 404, message: 'Not found' }
     }
-    console.error(e)
+    throw err
   }
 }
 

@@ -3,15 +3,24 @@ import { createFile, readFile, queryMap, areEqual } from '../utils.js'
 
 export default Router()
   .get('*', async (req, res, next) => {
+    if (req.url.includes('?')) {
+      return next()
+    }
+
     try {
       const project = await readFile(req.url)
       res.status(200).json(project)
     } catch (e) {
+      if (e.status === 404) {
+        return next()
+      }
+
       next(e)
     }
   })
   .get('*/:slug', async (req, res, next) => {
-    let project
+    let project = null
+
     try {
       if (Object.keys(req.query).length > 0) {
         project = await readFile(req.url.replace(/\?.+/, ''))
@@ -46,11 +55,11 @@ export default Router()
           project = queryMap.limit(project, req.query['limit'])
         }
       } else {
-        project = await readFile(req.params[0])
+        const _project = await readFile(req.params[0])
         // project = project.find((p) =>
         //   Object.values(p).find((v) => v === req.params.slug)
         // )
-        for (const item of project) {
+        for (const item of _project) {
           for (const key in item) {
             if (item[key] === req.params.slug) {
               project = item
@@ -58,7 +67,9 @@ export default Router()
           }
         }
       }
-      if (!project) return res.sendStatus(404)
+
+      if (!project || project.length < 1) return res.sendStatus(404)
+
       res.status(200).json(project)
     } catch (e) {
       next(e)
@@ -67,8 +78,11 @@ export default Router()
   .post('*', async (req, res, next) => {
     try {
       const project = await readFile(req.url)
+
       const newProject = project.concat(req.body)
-      await createFile(req.url, newProject)
+
+      await createFile(newProject, req.url)
+
       res.status(201).json(newProject)
     } catch (e) {
       next(e)
@@ -76,16 +90,22 @@ export default Router()
   })
   .put('*/:slug', async (req, res, next) => {
     const [url, slug] = Object.values(req.params)
+
     try {
       const project = await readFile(url)
-      if (!project) return res.sendStatus(404)
+
       const newProject = project.map((p) => {
         if (Object.values(p).find((v) => v === slug)) {
           return { ...p, ...req.body }
         } else return p
       })
-      if (areEqual(project, newProject)) return res.sendStatus(404)
-      await createFile(url, newProject)
+
+      if (areEqual(project, newProject)) {
+        throw { status: 404, message: 'Not found' }
+      }
+
+      await createFile(newProject, url)
+
       res.status(201).json(newProject)
     } catch (e) {
       next(e)
@@ -93,14 +113,20 @@ export default Router()
   })
   .delete('*/:slug', async (req, res, next) => {
     const [url, slug] = Object.values(req.params)
+
     try {
       const project = await readFile(url)
-      if (!project) return res.sendStatus(404)
+
       const newProject = project.filter(
         (p) => !Object.values(p).find((v) => v === slug)
       )
-      if (areEqual(project, newProject)) return res.sendStatus(404)
-      await createFile(url, newProject)
+
+      if (areEqual(project, newProject)) {
+        throw { status: 404, message: 'Not found' }
+      }
+
+      await createFile(newProject, url)
+
       res.status(201).json(newProject)
     } catch (e) {
       next(e)

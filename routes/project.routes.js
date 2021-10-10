@@ -41,11 +41,15 @@ export default Router()
       next(e)
     }
   })
-  .post('/upload', uploadFile.single('project'), (req, res, next) => {
-    res.status(201).json({
-      message: `Project "${req.body.project_name}" uploaded`
-    })
-  })
+  .post(
+    '/upload',
+    uploadFile.single('project_data_upload'),
+    (req, res, next) => {
+      res.status(201).json({
+        message: `Project "${req.body.project_name}" uploaded`
+      })
+    }
+  )
   .delete('/', async (req, res, next) => {
     const { project_name } = req.query
 
