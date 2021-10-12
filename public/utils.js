@@ -1,6 +1,4 @@
 export const isJson = (item) => {
-  item = typeof item !== 'string' ? JSON.stringify(item) : item
-
   try {
     item = JSON.parse(item)
   } catch (e) {

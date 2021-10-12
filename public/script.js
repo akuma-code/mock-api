@@ -55,7 +55,7 @@ async function fetchProjects() {
 
 function initProject(name, data) {
   project_name.value = name
-  project_data_paste.value = JSON.stringify(data, null, 2)
+  project_data_paste.value = isJson(data) ? data : JSON.stringify(data, null, 2)
 }
 
 function initHandlers() {
@@ -96,8 +96,12 @@ function initHandlers() {
     } else {
       data = project_data_paste.value.trim()
 
+      const name = project_name.value.trim()
+
+      if (!data || !name) return
+
       const body = {
-        project_name: project_name.value.trim(),
+        project_name: name,
         project_data: isJson(data) ? JSON.parse(data) : data
       }
 
@@ -105,15 +109,11 @@ function initHandlers() {
     }
 
     project_name.value = ''
+    project_data_paste.value = ''
+    project_data_upload.value = ''
 
     await handleResponse(response)
   }
-}
-
-async function removeProject(name) {
-  const response = await simpleFetch.remove(`?project_name=${name}`)
-
-  await handleResponse(response)
 }
 
 async function editProject(name) {
@@ -124,6 +124,14 @@ async function editProject(name) {
   }
 
   initProject(name, data)
+
+  project_data_details.open = true
+}
+
+async function removeProject(name) {
+  const response = await simpleFetch.remove(`?project_name=${name}`)
+
+  await handleResponse(response)
 }
 
 async function handleResponse(response) {

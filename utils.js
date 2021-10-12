@@ -13,7 +13,11 @@ export async function createFile(fileData, filePath, fileExt = 'json') {
   const fileName = `${ROOT_PATH}/${filePath}.${fileExt}`
 
   try {
-    await fs.writeFile(fileName, JSON.stringify(fileData, null, 2))
+    if (fileExt === 'json') {
+      await fs.writeFile(fileName, JSON.stringify(fileData, null, 2))
+    } else {
+      await fs.writeFile(fileName, fileData)
+    }
   } catch (err) {
     if (notExist(err)) {
       await fs.mkdir(truncPath(`${ROOT_PATH}/${filePath}`), {
@@ -34,7 +38,7 @@ export async function readFile(filePath, fileExt = 'json') {
 
     const fileContent = await fileHandler.readFile('utf-8')
 
-    return JSON.parse(fileContent)
+    return fileExt === 'json' ? JSON.parse(fileContent) : fileContent
   } catch (err) {
     if (notExist(err)) {
       throw { status: 404, message: 'Not found' }
@@ -118,22 +122,23 @@ export const uploadFile = multer({
   })
 })
 
+const strCollator = new Intl.Collator()
+const numCollator = new Intl.Collator([], { numeric: true })
+
 export const queryMap = {
   offset: (items, count) => items.slice(count),
   limit: (items, count) => items.slice(0, count),
   sort(items, field = 'id', order = 'asc') {
-    const collator = new Intl.Collator()
-    return items.sort((a, b) => {
-      if (typeof a[field] === 'string') {
-        return order.toLowerCase() === 'asc'
-          ? collator.compare(a[field], b[field])
-          : collator.compare(b[field], a[field])
-      }
+    const isString =
+      typeof items[0][field] === 'string' && Number.isNaN(items[0][field])
 
-      return order.toLowerCase() === 'asc'
-        ? a[field] - b[field]
-        : b[field] - a[field]
-    })
+    const collator = isString ? strCollator : numCollator
+
+    return items.sort((a, b) =>
+      order.toLowerCase() === 'asc'
+        ? collator.compare(a[field], b[field])
+        : collator.compare(b[field], a[field])
+    )
   }
 }
 
@@ -152,4 +157,18 @@ export function areEqual(a, b) {
   if (keys.length !== Object.keys(b).length) return false
 
   return keys.every((k) => areEqual(a[k], b[k]))
+}
+
+export function isJson(item) {
+  try {
+    item = JSON.parse(item)
+  } catch (e) {
+    return false
+  }
+
+  if (typeof item === 'object' && item !== null) {
+    return true
+  }
+
+  return false
 }

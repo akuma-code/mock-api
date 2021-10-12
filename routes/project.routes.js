@@ -16,7 +16,7 @@ export default Router()
     try {
       const project = await readFile(project_name)
 
-      res.status(200).json(project)
+      res.status(200).send(project)
     } catch (e) {
       next(e)
     }

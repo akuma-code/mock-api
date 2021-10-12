@@ -9,7 +9,7 @@ export default Router()
 
     try {
       const project = await readFile(req.url)
-      res.status(200).json(project)
+      res.status(200).send(project)
     } catch (e) {
       if (e.status === 404) {
         return next()
@@ -22,7 +22,7 @@ export default Router()
     let project = null
 
     try {
-      if (Object.keys(req.query).length > 0) {
+      if (req.url.includes('?')) {
         project = await readFile(req.url.replace(/\?.+/, ''))
 
         const notQueryKeyValues = Object.entries(req.query).filter(
@@ -56,9 +56,7 @@ export default Router()
         }
       } else {
         const _project = await readFile(req.params[0])
-        // project = project.find((p) =>
-        //   Object.values(p).find((v) => v === req.params.slug)
-        // )
+
         for (const item of _project) {
           for (const key in item) {
             if (item[key] === req.params.slug) {
