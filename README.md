@@ -18,7 +18,7 @@
 Наша админка будет выглядеть так:
 
 <img src="https://habrastorage.org/webt/z_/bm/ge/z_bmgez08qrefh2udyodneqniqi.png" />
-<br />
+
 Для быстрой стилизации приложения будет использоваться [`Bootstrap`](https://getbootstrap.com/).
 
 При разработке приложения мы будет придерживаться 2 важных условий:
